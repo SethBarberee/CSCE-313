@@ -19,6 +19,7 @@ char* BuddyAllocator::alloc(uint _length) {
      Of course this needs to be replaced by your implementation.
   */
   return new char [_length];
+  // make sure it doesn't return the header block. Has to return the actual block
 }
 
 int BuddyAllocator::free(char* _a) {
@@ -28,6 +29,5 @@ int BuddyAllocator::free(char* _a) {
 }
 
 void BuddyAllocator::debug (){
-  
 }
 
