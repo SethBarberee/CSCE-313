@@ -21,19 +21,48 @@ typedef unsigned int uint;
 class BlockHeader{
 	// decide what goes here
 	// hint: obviously block size will go here
+    public:
+        BlockHeader* next; 
+        uint block_size;
+        bool in_use; // boolean to check if it's free
+        ~BlockHeader(){ // destructor to clean pointers up
+            delete next;
+        }
 };
 
 class LinkedList{
 	// this is a special linked list that is made out of BlockHeader s. 
 private:
 	BlockHeader* head;		// you need a head of the list
+    uint size;
 public:
 	void insert (BlockHeader* b){	// adds a block to the list
-
+        if(size == 0){ // Test if empty
+            head = b;
+            size++;
+        }
+        else {
+            BlockHeader* current = head;
+            for(uint i = 1; i < size; i++){
+                current = current->next;
+            }
+            current->next = b;
+            size++;
+        }
 	}
 
 	void remove (BlockHeader* b){  // removes a block from the list
-
+        if(size == 1){
+            head = nullptr;
+            size--;
+        }
+        else if (size == 0){
+            fprintf(stderr, "Cannot remove from empty list");
+        }
+        else {
+            // TODO Access Next and previous ones and reassign
+            size--;
+        }
 	}
 };
 
@@ -41,7 +70,7 @@ public:
 class BuddyAllocator{
 private:
 	/* declare member variables as necessary */
-
+   BlockHeader* free_lists; 
 private:
 	/* private function you are required to implement
 	 this will allow you and us to do unit test */

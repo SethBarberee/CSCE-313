@@ -43,12 +43,10 @@ int main(int argc, char ** argv) {
           break;
 
         case 'b':
-          printf ("option -c with value `%s'\n", optarg);
           bvalue = atoi(optarg);
           break;
 
         case 's':
-          printf ("option -s with value `%s'\n", optarg);
           svalue = atoi(optarg);
           break;
 
@@ -60,8 +58,6 @@ int main(int argc, char ** argv) {
         }
     }
 
-
-    printf("blocksize = %d, memsize = %d\n", bvalue, svalue);
     // defaults are below... override them with the command-line args
     int basic_block_size = bvalue, memory_length = svalue * 1024;
 
