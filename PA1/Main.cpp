@@ -5,8 +5,8 @@
 #include "BuddyAllocator.h"
 
 int main(int argc, char ** argv) {
-    int bvalue = 0;
-    int svalue = 0;
+    int bvalue = 128;
+    int svalue = 512;
     int c;
 
     opterr = 0;
@@ -53,7 +53,6 @@ int main(int argc, char ** argv) {
           break;
 
         case '?':
-          /* getopt_long already printed an error message. */
           break;
 
         default:
@@ -64,7 +63,7 @@ int main(int argc, char ** argv) {
 
     printf("blocksize = %d, memsize = %d\n", bvalue, svalue);
     // defaults are below... override them with the command-line args
-    int basic_block_size = 128, memory_length = 512 * 1024;
+    int basic_block_size = bvalue, memory_length = svalue * 1024;
 
     // create memory manager
     BuddyAllocator * allocator = new BuddyAllocator(basic_block_size, memory_length);
