@@ -6,7 +6,25 @@
 using namespace std;
 
 BuddyAllocator::BuddyAllocator (uint _basic_block_size, uint _total_memory_length){
-	
+    uint new_block_size;
+    // Test for power of two
+    if(_basic_block_size > 0 && ((_basic_block_size & (_basic_block_size - 1)) == 0)){
+        printf("%d is a power of two\n", _basic_block_size);
+    } else {
+        // Somehow round it up to the closest power of two..
+        printf("%d isn't a power of two\n", _basic_block_size);
+        new_block_size = _basic_block_size;
+        // Most accurate way to compute vs another method
+        // see graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+        new_block_size--;
+        new_block_size |= new_block_size >> 1;
+        new_block_size |= new_block_size >> 2;
+        new_block_size |= new_block_size >> 4;
+        new_block_size |= new_block_size >> 8; 
+        new_block_size |= new_block_size >> 16; 
+        new_block_size++;
+        printf("New size of %d\n", new_block_size);
+    }	
 }
 
 BuddyAllocator::~BuddyAllocator (){
