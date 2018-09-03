@@ -18,7 +18,7 @@ int main(int argc, char ** argv) {
            /*  We distinguish them by their indices. */
           {"blocksize",  required_argument, 0, 'b'},
           {"memsize",    required_argument, 0, 's'},
-          {0, 0}
+          {0, 0, 0, 0}
         };
       /* getopt_long stores the option index here. */
       int option_index = 0;
@@ -57,9 +57,14 @@ int main(int argc, char ** argv) {
           abort ();
         }
     }
+    if (optind < argc){
+      printf ("non-option ARGV-elements: ");
+      while (optind < argc)
+        printf ("%s ", argv[optind++]);
+      putchar ('\n');
+    }
 
     // defaults are below... override them with the command-line args
-    int basic_block_size = bvalue, memory_length = svalue;
     if(bvalue > svalue){ // check to make sure we have enough memory
         fprintf(stderr,"Not enough memory\n");
         return 1;
@@ -67,7 +72,7 @@ int main(int argc, char ** argv) {
     
 
     // create memory manager
-    BuddyAllocator * allocator = new BuddyAllocator(basic_block_size, memory_length);
+    BuddyAllocator * allocator = new BuddyAllocator(bvalue, svalue);
 
     allocator->debug();
 

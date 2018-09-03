@@ -17,7 +17,11 @@ BuddyAllocator::BuddyAllocator (uint _basic_block_size, uint _total_memory_lengt
     base = new BlockHeader;
     base->block_size = new_total; // assign the block size
     base_counter = new_block;
-    levels = log(new_total);
+    // TODO find a faster way to calculate
+    while(base_counter < new_total){
+        base_counter = base_counter * 2;
+        levels++;
+    }
     // TODO check this.... IDK if this is right
     free_lists = new LinkedList[levels]; // make the array of pointers to LinkedList
 
@@ -44,7 +48,6 @@ char* BuddyAllocator::alloc(uint _length) {
   uint req_length = _length + sizeof(BlockHeader);
   req_length = power_of_two(req_length);
   cout << "Adjusted length: " << req_length << endl;
-  cout << endl;
   uint current_size = block;
   uint size_avaliable = 0;
   // TODO check if we have memory to alloc else return null
@@ -56,11 +59,18 @@ char* BuddyAllocator::alloc(uint _length) {
   }
   // check if we have enough space else return nullptr
   if(size_avaliable < req_length){
+    fprintf(stderr, "Not enough memory for allocation of %d bytes\n", req_length);
     return nullptr;
   }
-  // TODO split blocks until good size
-  // TODO when we split, add them to free_lists
-  // TODO find good size and remove it from free_lists
+  else {
+    if(req_length < block){
+        req_length = block; // make sure it gets the basic block size and nothing less
+        cout << "Adjusted to be size of " << req_length << endl;
+    }
+    // TODO split blocks until good size
+    // TODO once block is found, remove from free_lists
+  }
+  cout << endl;
   return new char [req_length];
 }
 
@@ -84,10 +94,8 @@ int BuddyAllocator::free(char* _a) {
 
 void BuddyAllocator::debug (){
     cout << "Block size: " << block << "\t Total Memory: " << memory << endl;
-    uint current_size = block;
     for(uint i = 0; i < levels; i++){
-        cout << current_size << ": " << free_lists[i].get_size() << endl;
-        current_size = current_size * 2;
+        cout << block*pow(2,i) << ": " << free_lists[i].get_size() << endl;
     }
 }
 /*
@@ -122,6 +130,7 @@ char* BuddyAllocator::merge (char* block1, char* block2){
 char* BuddyAllocator::split (char* block){
     // TODO recursively check if the size is good enough
     // TODO else keep splitting by putting a new header halfway between
+    // TODO add to free lists
 }
 
 */
