@@ -22,7 +22,7 @@ class BlockHeader{
 	// decide what goes here
 	// hint: obviously block size will go here
     public:
-        BlockHeader* next; 
+        BlockHeader* next = nullptr; 
         uint block_size;
         bool in_use; // boolean to check if it's free
         ~BlockHeader(){ // destructor to clean pointers up
@@ -33,22 +33,19 @@ class BlockHeader{
 class LinkedList{
 	// this is a special linked list that is made out of BlockHeader s. 
 private:
-	BlockHeader* head;		// you need a head of the list
-    uint size;
+	BlockHeader* head = nullptr;		// you need a head of the list
+    uint size = 0;
 public:
 	void insert (BlockHeader* b){	// adds a block to the list
         if(size == 0){ // Test if empty
             head = b;
-            size++;
         }
         else {
-            BlockHeader* current = head;
-            for(uint i = 1; i < size; i++){
-                current = current->next;
-            }
-            current->next = b;
-            size++;
+            // insert at the beginning
+            b->next = head;
+            head = b;
         }
+        size++;
 	}
 
 	void remove (BlockHeader* b){  // removes a block from the list
@@ -64,13 +61,23 @@ public:
             size--;
         }
 	}
+    BlockHeader* get_head(){
+        return head;
+    }
+    uint get_size(){
+        return size;
+    }
 };
 
 
 class BuddyAllocator{
 private:
 	/* declare member variables as necessary */
-   BlockHeader* free_lists; 
+   LinkedList* free_lists = nullptr;
+   uint block = 0; // basic block size
+   uint memory = 0; // total memory
+   uint levels = 1;
+   BlockHeader* base = nullptr;
 private:
 	/* private function you are required to implement
 	 this will allow you and us to do unit test */

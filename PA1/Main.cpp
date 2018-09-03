@@ -59,10 +59,13 @@ int main(int argc, char ** argv) {
     }
 
     // defaults are below... override them with the command-line args
+    // TODO can we assume KB for memory length?
     int basic_block_size = bvalue, memory_length = svalue * 1024;
 
     // create memory manager
     BuddyAllocator * allocator = new BuddyAllocator(basic_block_size, memory_length);
+
+    allocator->debug();
 
     // test memory manager
     Ackerman* am = new Ackerman ();
