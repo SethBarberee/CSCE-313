@@ -6,7 +6,7 @@
 
 int main(int argc, char ** argv) {
     int bvalue = 128;
-    int svalue = 512;
+    int svalue = 512 * 1024;
     int c;
 
     opterr = 0;
@@ -59,8 +59,12 @@ int main(int argc, char ** argv) {
     }
 
     // defaults are below... override them with the command-line args
-    // TODO can we assume KB for memory length?
-    int basic_block_size = bvalue, memory_length = svalue * 1024;
+    int basic_block_size = bvalue, memory_length = svalue;
+    if(bvalue > svalue){ // check to make sure we have enough memory
+        fprintf(stderr,"Not enough memory\n");
+        return 1;
+    }
+    
 
     // create memory manager
     BuddyAllocator * allocator = new BuddyAllocator(basic_block_size, memory_length);
