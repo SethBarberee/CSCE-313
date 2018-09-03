@@ -45,21 +45,27 @@ public:
             b->next = head;
             head = b;
         }
-        size++;
+        size = size + 1;
 	}
 
 	void remove (BlockHeader* b){  // removes a block from the list
-        if(size == 1){
-            head = nullptr;
-            size--;
+        BlockHeader* current = head;
+        for(uint i = 0; i < size; i++){
+            if((current->next = b)){
+                break; // found it
+            }
+            else {
+                current = current->next; // advance to next one
+            }
         }
-        else if (size == 0){
-            fprintf(stderr, "Cannot remove from empty list");
+        // Remove from list
+        if(current->next->next == nullptr){
+            current->next = nullptr;
         }
         else {
-            // TODO Access Next and previous ones and reassign
-            size--;
+            current->next = current->next->next;
         }
+        size--;
 	}
     BlockHeader* get_head(){
         return head;
@@ -74,10 +80,10 @@ class BuddyAllocator{
 private:
 	/* declare member variables as necessary */
    LinkedList* free_lists = nullptr;
-   uint block = 0; // basic block size
+   uint block_size = 0; // basic block size
    uint memory = 0; // total memory
    uint levels = 1;
-   BlockHeader* base = nullptr;
+   char* base = nullptr;
 private:
 	/* private function you are required to implement
 	 this will allow you and us to do unit test */
@@ -124,7 +130,7 @@ public:
 	   using ’my_malloc’. Returns 0 if everything ok. */ 
    
 	void debug ();
-	/* Mainly used for debugging purposes and running short test cases */
+	/* Mainly used for =debugging purposes and running short test cases */
 	/* This function should print how many free blocks of each size belong to the allocator
 	at that point. The output format should be the following (assuming basic block size = 128 bytes):
 
