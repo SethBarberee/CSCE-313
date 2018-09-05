@@ -65,6 +65,7 @@ int main(int argc, char ** argv) {
     }
 
     // defaults are below... override them with the command-line args
+    // TODO can svalue be smaller than bvalue??
     if(bvalue > svalue){ // check to make sure we have enough memory
         fprintf(stderr,"Not enough memory\n");
         return 1;

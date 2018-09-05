@@ -25,9 +25,6 @@ class BlockHeader{
         BlockHeader* next = nullptr; 
         uint block_size;
         bool in_use; // boolean to check if it's free
-        ~BlockHeader(){ // destructor to clean pointers up
-            delete next;
-        }
 };
 
 class LinkedList{
@@ -36,36 +33,53 @@ private:
 	BlockHeader* head = nullptr;		// you need a head of the list
     uint size = 0;
 public:
+    LinkedList(){
+        head = nullptr;
+        size = 0;
+    }
 	void insert (BlockHeader* b){	// adds a block to the list
-        if(size == 0){ // Test if empty
+        if(size < 1){ // Test if empty
             head = b;
+            size = 1;
         }
         else {
             // insert at the beginning
             b->next = head;
             head = b;
+            size++;
         }
-        size = size + 1;
 	}
 
 	void remove (BlockHeader* b){  // removes a block from the list
+        // TODO figure out what is messing up here
         BlockHeader* current = head;
-        for(uint i = 0; i < size; i++){
-            if((current->next = b)){
-                break; // found it
+        if(size > 1){
+            for(uint i = 0; i < size; i++){
+                if((current->next = b)){
+                    break; // found it
+                }
+                else {
+                    cout << "Going to the next node" << endl;
+                    current = current->next; // advance to next one
+                }
+            }
+            // Remove from list
+            if(!current->next->next){
+                current->next = nullptr;
             }
             else {
-                current = current->next; // advance to next one
+                current->next = current->next->next;
             }
-        }
-        // Remove from list
-        if(current->next->next == nullptr){
-            current->next = nullptr;
+            size--;
         }
         else {
-            current->next = current->next->next;
+            // This is only for the case for when there is only one block
+            if(current == b){
+                current->next = nullptr;
+                head = nullptr;
+                size--;
+            }
         }
-        size--;
 	}
     BlockHeader* get_head(){
         return head;
