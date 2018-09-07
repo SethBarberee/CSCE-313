@@ -51,35 +51,38 @@ public:
 	}
 
 	void remove (BlockHeader* b){  // removes a block from the list
-        // TODO figure out what is messing up here
         BlockHeader* current = head;
-        if(size > 1){
-            for(uint i = 0; i < size; i++){
-                if((current->next = b)){
-                    break; // found it
-                }
-                else {
-                    cout << "Going to the next node" << endl;
-                    current = current->next; // advance to next one
-                }
-            }
-            // Remove from list
-            if(!current->next->next){
-                current->next = nullptr;
-            }
-            else {
-                current->next = current->next->next;
-            }
-            size--;
-        }
-        else {
-            // This is only for the case for when there is only one block
-            if(current == b){
-                current->next = nullptr;
-                head = nullptr;
+        // check the head
+        if(current == b){
+            if(current->next){
+                head = current->next;
                 size--;
             }
+            else {
+                head = nullptr;
+                size = 0;
+            }
         }
+        else {
+            // wasn't the head so look for it
+            for(uint i = 1; i < size; i++){
+                if(current->next == b){
+                   // next node is what we are looking for
+                   if(current->next->next){
+                        current->next = current->next->next;
+                        size--;
+                   }
+                   else {
+                        current->next = nullptr;
+                        size--;
+                   }
+                }
+                else {
+                    current = current->next;
+                }
+            }
+        }
+        
 	}
     BlockHeader* get_head(){
         return head;
@@ -87,6 +90,15 @@ public:
     uint get_size(){
         return size;
     }
+    ~LinkedList(){
+        BlockHeader* current = head;
+        BlockHeader* last = head;
+        for(uint i = 0; i < size; i++){
+            current = current->next;
+            last = current;
+            delete[] last;
+        }
+    };
 };
 
 
