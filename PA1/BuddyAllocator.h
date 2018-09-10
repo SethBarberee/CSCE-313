@@ -91,12 +91,13 @@ public:
         return size;
     }
     ~LinkedList(){
+        // TODO verify this
         BlockHeader* current = head;
-        BlockHeader* last = head;
+        BlockHeader* next = nullptr;
         for(uint i = 0; i < size; i++){
-            current = current->next;
-            last = current;
-            delete[] last;
+            next = current->next;
+            delete current;
+            current = next;
         }
     };
 };
