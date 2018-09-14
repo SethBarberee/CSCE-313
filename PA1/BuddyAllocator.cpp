@@ -16,6 +16,7 @@ BuddyAllocator::BuddyAllocator (uint _basic_block_size, uint _total_memory_lengt
     base = new char[new_total];
     BlockHeader* base_head = (BlockHeader*) base;
     base_head->block_size = new_total; // assign the block size
+    base_head->in_use = false;
     // Calculate the levels needed
     levels = log2(new_total) - log2(new_block) + 1;
     free_lists = new LinkedList[levels]; // make the array of pointers to LinkedList
@@ -75,8 +76,9 @@ char* BuddyAllocator::alloc(uint _length) {
       } 
   }
     biggest_indice = log2(size_avaliable) - log2(block_size); // calculate indice of biggest available
-    current_size = free_lists[biggest_indice].get_head()->block_size;
-    new_block = (char*)free_lists[biggest_indice].get_head();
+    BlockHeader* new_head = nullptr;
+    new_head = free_lists[biggest_indice].get_head();
+    new_block = (char*) new_head;
 
   // check if we have enough space else return nullptr
   if(size_avaliable < req_length){
@@ -85,27 +87,24 @@ char* BuddyAllocator::alloc(uint _length) {
     return nullptr;
   }
   else {
-    if(req_length < block_size){
-        req_length = block_size; // make sure it gets the basic block size and nothing less
-    }
-    else if(free_lists[indice_check].get_size() > 0){
+    if(free_lists[indice_check].get_size() > 0){
         new_block = (char*)free_lists[indice_check].get_head();
         biggest_indice = indice_check;
     }
     else {
-        while(current_size > req_length){
+       while(current_size > req_length){
             split(new_block);
-            biggest_indice--;
-            current_size = free_lists[biggest_indice].get_head()->block_size;
-            new_block = (char*)free_lists[biggest_indice].get_head();
-        }
+            biggest_indice = biggest_indice - 1;
+            new_head = free_lists[biggest_indice].get_head();
+            new_block = (char*)new_head;
+            current_size = new_head->block_size;
+       } 
     }
   }
 
   block_head = (BlockHeader*) new_block;
   free_lists[biggest_indice].remove(block_head);
   // set the values
-  block_head->block_size = req_length;
   block_head->in_use = true;
   // return pointer to block + blockheader
   return (new_block+sizeof(BlockHeader)); 
@@ -113,29 +112,30 @@ char* BuddyAllocator::alloc(uint _length) {
 
 int BuddyAllocator::free(char* _a) {
   char* free_pointer = _a;
-  free_pointer = _a-sizeof(BlockHeader);
+  char* buddy = nullptr;
+  free_pointer = free_pointer-sizeof(BlockHeader);
   BlockHeader* header = (BlockHeader*) free_pointer;
-  cout << "Deallocating a block of size " << header->block_size << endl;
-  BlockHeader* buddy_header = nullptr;
   // set the block use flag to not in use
   header->in_use = false;
   // figure out what level we are on
   uint level = log2(header->block_size) - log2(block_size);
   while(true){
-    // TODO possibly rewrite this to make it nicer?
-    if(free_lists[level].get_size() > 0){
-        char* buddy = getbuddy(free_pointer);
-        buddy_header = (BlockHeader*) buddy;
-        if((!buddy_header->in_use && (buddy_header->block_size == header->block_size))){
+    if(free_lists[level].get_size() > 0 && level < (levels-1)){
+        buddy = getbuddy(free_pointer);
+        // check the buddy to make sure it's valid
+        if(isvalid(buddy)){
+            // it's all good to merge
             free_pointer = merge(free_pointer, buddy);
             level++;
         }
         else {
+            // Buddy in use
             free_lists[level].insert(header);
             break;
         }
     } 
     else {
+        // Nothing in the list to merge with anyway
         free_lists[level].insert(header);
         break;
     }
@@ -154,20 +154,34 @@ char* BuddyAllocator::getbuddy(char *block1){
     BlockHeader* free_pointer = (BlockHeader*) block1;
     char* buddy = nullptr;
     //char* buddy = (block1 - sizeof(BlockHeader));
-    buddy = ((block1-base) ^ free_pointer->block_size) + base;
+    buddy = (char*)(((block1-base) ^ free_pointer->block_size) + base);
     return buddy;
 }
 
 bool BuddyAllocator::arebuddies(char *block1, char *block2){
+    char* buddy1 = nullptr;
+    char* buddy2 = nullptr;
+    buddy1 = getbuddy(block1);
+    buddy2 = getbuddy(block2);
     // if the buddy equals each other, then they surely are buddies
-    return ((getbuddy(block1) == block2) && (getbuddy(block2) == block1)); 
+    if((buddy1 == block2) && (buddy2 == block1)){
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 char* BuddyAllocator::merge (char* block1, char* block2){
     BlockHeader* header1 = nullptr;
     BlockHeader* header2 = nullptr;
-    header1 = (BlockHeader*) block1;
-    header2 = (BlockHeader*) block2;
+    if(block1 > block2){
+        header1 = (BlockHeader*) block2;
+        header2 = (BlockHeader*) block1;
+    } else {
+        header1 = (BlockHeader*) block1;
+        header2 = (BlockHeader*) block2;
+    }
     uint level = log2(header1->block_size) - log2(block_size);
     // remove both blocks from free_list
     free_lists[level].remove(header2);
@@ -196,4 +210,15 @@ char* BuddyAllocator::split (char* block){
     free_lists[level-1].insert(header2);
     free_lists[level-1].insert(header1);
     return block;
+}
+bool BuddyAllocator::isvalid(char *addr){
+    BlockHeader* header = nullptr;
+    header = (BlockHeader*) addr;
+    // make sure this is a multiple of block_size
+    if((header->block_size % block_size)  == 0){
+        return true;
+    }
+    else {
+        return false;
+    }
 }

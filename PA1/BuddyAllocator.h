@@ -44,8 +44,10 @@ public:
         }
         else {
             // insert at the beginning
-            b->next = head;
+            BlockHeader* old_head = nullptr;
+            old_head = head;
             head = b;
+            head->next = old_head;
             size++;
         }
 	}
@@ -54,9 +56,9 @@ public:
         BlockHeader* current = head;
         // check the head
         if(current == b){
-            if(current->next){
+            if(current->next != nullptr){
                 head = current->next;
-                size--;
+                size = size - 1;
             }
             else {
                 head = nullptr;
@@ -68,7 +70,7 @@ public:
             for(uint i = 1; i < size; i++){
                 if(current->next == b){
                    // next node is what we are looking for
-                   if(current->next->next){
+                   if(current->next->next != nullptr){
                         current->next = current->next->next;
                         size--;
                    }
@@ -91,7 +93,6 @@ public:
         return size;
     }
     ~LinkedList(){
-        // TODO verify this
         BlockHeader* current = head;
         BlockHeader* next = nullptr;
         for(uint i = 0; i < size; i++){
