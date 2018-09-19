@@ -5,7 +5,7 @@ all: shell
 Main.o : Main.cpp
 	g++ -c -g Main.cpp
 
-shell:
+shell: Main.o
 	g++ -o shell Main.o
 
 clean:
