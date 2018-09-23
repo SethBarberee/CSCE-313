@@ -1,3 +1,5 @@
+// stolen from http://www.codebind.com/cpp-tutorial/c-get-current-directory-linuxwindows
+
 std::string GetCurrentWorkingDir( void ) {
   char buff[FILENAME_MAX];
   getcwd( buff, FILENAME_MAX );
