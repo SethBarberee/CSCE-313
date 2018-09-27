@@ -46,7 +46,8 @@ int main(int argc, char ** argv){
             return 0;
         }
         else {
-            parse_command(command,0);
+            parse_command(command);
+
         }
     }
 }

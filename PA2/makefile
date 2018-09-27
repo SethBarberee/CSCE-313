@@ -9,5 +9,4 @@ shell: Main.o
 	g++ -o shell Main.o
 
 clean:
-	rm *.o
-	rm shell
+	rm *.o shell
