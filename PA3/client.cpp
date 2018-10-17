@@ -35,8 +35,20 @@
 #include "Histogram.h"
 using namespace std;
 
+struct thread_data {
+    int n;
+    string name;
+    SafeBuffer* request_buffer;
+};
 
-void* request_thread_function(void* arg) {
+struct worker_data {
+    Histogram* hist;
+    SafeBuffer* request_buffer;
+    RequestChannel* workerChannel;
+};
+
+
+void* request_thread_function(void *arg) {
 	/*
 		Fill in this function.
 
@@ -50,10 +62,13 @@ void* request_thread_function(void* arg) {
 		the data requests are being pushed: you MAY NOT
 		create 3 copies of this function, one for each "patient".
 	 */
-
-	for(;;) {
-
+    struct thread_data *my_data;
+    my_data = (struct thread_data *) arg;
+    string data = "data " + my_data->name;
+	for(int i = 0; i < my_data->n; i++) {
+        my_data->request_buffer->push(data);        
 	}
+    pthread_exit(NULL);
 }
 
 void* worker_thread_function(void* arg) {
@@ -71,10 +86,23 @@ void* worker_thread_function(void* arg) {
 		RequestChannel you construct regardless of
 		whether you used "new" for it.
      */
+    struct worker_data *my_data;
+    my_data = (struct worker_data *) arg;
 
     while(true) {
+        string request = my_data->request_buffer->pop();
+		my_data->workerChannel->cwrite(request);
 
+		if(request == "quit") {
+			delete my_data->workerChannel;
+            break;
+        }else{
+			string response = my_data->workerChannel->cread();
+            //cout << "adding to histogram " << request << ", " << response << endl;
+			my_data->hist->update (request, response);
+		}
     }
+    pthread_exit(NULL);
 }
 
 /*--------------------------------------------------------------------------*/
@@ -112,12 +140,37 @@ int main(int argc, char * argv[]) {
 
 		SafeBuffer request_buffer;
 		Histogram hist;
-
+        
+        /*
+         * Sequential
         for(int i = 0; i < n; ++i) {
             request_buffer.push("data John Smith");
             request_buffer.push("data Jane Smith");
             request_buffer.push("data Joe Smith");
         }
+        */
+        pthread_t threads[3];
+        pthread_t worker[w];
+        struct thread_data td[3];
+        struct worker_data wd[w];
+        td[0].n = n;
+        td[0].name = "John Smith";
+        td[0].request_buffer = &request_buffer;
+        td[1].n = n;
+        td[1].name = "Jane Smith";
+        td[1].request_buffer = &request_buffer;
+        td[2].n = n;
+        td[2].name = "Joe Smith";
+        td[2].request_buffer = &request_buffer;
+        // Spawn a thread for each patient
+        for(int i = 0; i < 3; i++){
+            pthread_create(&threads[i], NULL, request_thread_function, (void *) &td[i]);
+        }
+        // Join them all back
+        for(int i = 0; i < 3; i++){
+            pthread_join(threads[i], NULL);
+        }
+
         cout << "Done populating request buffer" << endl;
 
         cout << "Pushing quit requests... ";
@@ -125,12 +178,29 @@ int main(int argc, char * argv[]) {
             request_buffer.push("quit");
         }
         cout << "done." << endl;
+  
+        
+        //struct timeval tp_start, tp_end; /* Used to compute elapsed time. */
+        //gettimeofday(&tp_start, 0); // start timer
+        string s;
 
-	
-        chan->cwrite("newchannel");
-		string s = chan->cread ();
-        RequestChannel *workerChannel = new RequestChannel(s, RequestChannel::CLIENT_SIDE);
+        // Spawn the worker threads
+        for(int i = 0; i < w; ++i){
+            wd[i].hist = &hist;
+            wd[i].request_buffer = &request_buffer;
+            chan->cwrite("newchannel");
+		    s = chan->cread();
+            cout << "Response: " << s << endl;
+            // TODO check this
+            wd[i].workerChannel = new RequestChannel(s, RequestChannel::CLIENT_SIDE);
+            pthread_create(&worker[i], NULL, worker_thread_function, (void *) &wd[i]);
+        }
+        for(int i = 0; i < w; ++i){
+            pthread_join(worker[i], NULL);
+        }
 
+        /*
+         * Sequential
         while(true) {
             string request = request_buffer.pop();
 			workerChannel->cwrite(request);
@@ -143,6 +213,8 @@ int main(int argc, char * argv[]) {
 				hist.update (request, response);
 			}
         }
+        */
+        //gettimeofday(&tp_end, 0);   // stop timer
         chan->cwrite ("quit");
         delete chan;
         cout << "All Done!!!" << endl; 
