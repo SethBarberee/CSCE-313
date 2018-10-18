@@ -9,7 +9,9 @@ Histogram::Histogram(){
 	for (int i=0; i<3; i++){
 		memset (hist[i], 0, 10 * sizeof (int));	
 	}
-    pthread_mutex_init(&m, NULL);
+    pthread_mutex_init(&john, NULL);
+    pthread_mutex_init(&jane, NULL);
+    pthread_mutex_init(&joe, NULL);
 	map ["data John Smith"] = 0;
 	map ["data Jane Smith"] = 1;
 	map ["data Joe Smith"] = 2;
@@ -23,10 +25,26 @@ void Histogram::update (string request, string response){
 	Is this function thread-safe???
 	Make necessary modifications to make it thread-safe
 	*/
-    pthread_mutex_lock(&m);
+    if(request == "data John Smith"){
+        pthread_mutex_lock(&john);
+    }
+    else if(request == "data Jane Smith"){
+        pthread_mutex_lock(&jane);
+    }
+    else if(request == "data Joe Smith"){
+        pthread_mutex_lock(&joe);
+    }
 	int person_index = map [request];
 	hist [person_index][stoi(response) / 10] ++;
-    pthread_mutex_unlock(&m);
+    if(request == "data John Smith"){
+        pthread_mutex_unlock(&john);
+    }
+    else if(request == "data Jane Smith"){
+        pthread_mutex_unlock(&jane);
+    }
+    else if(request == "data Joe Smith"){
+        pthread_mutex_unlock(&joe);
+    }
 }
 void Histogram::print(){
 	cout << setw(10) << right << "Range";
