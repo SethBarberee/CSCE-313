@@ -210,9 +210,19 @@ int main(int argc, char * argv[]) {
         cout << "done." << endl<< flush;
 
 		BoundedBuffer request_buffer(b);
-        BoundedBuffer buffer1((b/3));
-        BoundedBuffer buffer2((b/3));
-        BoundedBuffer buffer3((b/3));
+        BoundedBuffer* buffer1;
+        BoundedBuffer* buffer2;
+        BoundedBuffer* buffer3;
+        if(b > 2){
+            buffer1 = new BoundedBuffer((b/3));
+            buffer2 = new BoundedBuffer((b/3));
+            buffer3 = new BoundedBuffer((b/3));
+        }
+        else {
+            buffer1 = new BoundedBuffer(1);
+            buffer2 = new BoundedBuffer(1);
+            buffer3 = new BoundedBuffer(1);
+        }
 
         pthread_t threads[3];
         pthread_t worker[w];
@@ -239,9 +249,9 @@ int main(int argc, char * argv[]) {
         // Spawn the worker threads
         for(int i = 0; i < w; ++i){
             wd[i].request_buffer = &request_buffer;
-            wd[i].response_buffer1 = &buffer1;
-            wd[i].response_buffer2 = &buffer2;
-            wd[i].response_buffer3 = &buffer3;
+            wd[i].response_buffer1 = buffer1;
+            wd[i].response_buffer2 = buffer2;
+            wd[i].response_buffer3 = buffer3;
             chan->cwrite("newchannel");
 		    s = chan->cread();
             wd[i].workerChannel = new RequestChannel(s, RequestChannel::CLIENT_SIDE);
@@ -249,15 +259,15 @@ int main(int argc, char * argv[]) {
         }
 
         // Initialize all the values for statistics threads
-        sd[0].response_buffer = &buffer1;
+        sd[0].response_buffer = buffer1;
         sd[0].request = "data John Smith";
         sd[0].hist = &hist;
         sd[0].n = n;
-        sd[1].response_buffer = &buffer2;
+        sd[1].response_buffer = buffer2;
         sd[1].request = "data Jane Smith";
         sd[1].hist = &hist;
         sd[1].n = n;
-        sd[2].response_buffer = &buffer3;
+        sd[2].response_buffer = buffer3;
         sd[2].request = "data Joe Smith";
         sd[2].hist = &hist;
         sd[2].n = n;
