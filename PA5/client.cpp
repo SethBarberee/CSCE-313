@@ -165,17 +165,14 @@ void* event_handler_thread_function(void *arg) {
                 it->second->cwrite(request);
                 // update map
                 request_map.insert(pair<RequestChannel*, string> (it->second, request));
-                cout << "Counter: " << counter << endl;
-                cout << "Requests: " << requests << endl;
             }
             fd_ready.erase(fd_ready.begin(), fd_ready.end());
-        } else {
-            // we don't have a channel ready
         }
     }
-    /*for(int i = 0; i < wd.size(); i++){
-        delete[] wd[i];
-    }*/
+    // Delete all the worker channels
+    for(int i = 0; i < my_data->w; i++){
+        delete wd[i];
+    }
     pthread_exit(NULL);
 }
 
@@ -326,6 +323,9 @@ int main(int argc, char * argv[]) {
         // Join all the threads back
         for(int i = 0; i < 3; ++i){
             pthread_join(threads[i], NULL);
+        }
+        for(int i = 0; i < w; ++i){
+            request_buffer.push("quit");
         }
         for(int i = 0; i < 3; ++i){
             pthread_join(statistics[i], NULL);
