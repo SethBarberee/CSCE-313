@@ -176,7 +176,7 @@ void histogram_update(int signal){
 /*--------------------------------------------------------------------------*/
 
 int main(int argc, char * argv[]) {
-    int n = 100000; //default number of requests per "patient"
+    int n = 10000; //default number of requests per "patient"
     int w = 1; //default number of worker threads
     int b = n * 3; // default capacity for BoundedBuffer
     int opt = 0;
@@ -231,8 +231,7 @@ int main(int argc, char * argv[]) {
             chan = new FIFORequestChannel("control", RequestChannel::CLIENT_SIDE);
         }
         cout << "done." << endl<< flush;
-
-		BoundedBuffer request_buffer(b);
+        BoundedBuffer* request_buffer = new BoundedBuffer(b);
         BoundedBuffer* buffer1;
         BoundedBuffer* buffer2;
         BoundedBuffer* buffer3;
@@ -256,25 +255,23 @@ int main(int argc, char * argv[]) {
 
         td[0].n = n;
         td[0].name = "John Smith";
-        td[0].request_buffer = &request_buffer;
+        td[0].request_buffer = request_buffer;
         td[1].n = n;
         td[1].name = "Jane Smith";
-        td[1].request_buffer = &request_buffer;
+        td[1].request_buffer = request_buffer;
         td[2].n = n;
         td[2].name = "Joe Smith";
-        td[2].request_buffer = &request_buffer;
+        td[2].request_buffer = request_buffer;
         // Spawn a thread for each patient
         for(int i = 0; i < 3; i++){
             pthread_create(&threads[i], NULL, request_thread_function, (void *) &td[i]);
         }
-        for(int i = 0; i < 3; ++i){
-            pthread_join(threads[i], NULL);
-        }
+
         auto start = chrono::system_clock::now(); 
         string s; 
         // Spawn the worker threads
         for(int j = 0; j < w; ++j){
-            wd[j].request_buffer = &request_buffer;
+            wd[j].request_buffer = request_buffer;
             wd[j].response_buffer1 = buffer1;
             wd[j].response_buffer2 = buffer2;
             wd[j].response_buffer3 = buffer3;
@@ -314,12 +311,12 @@ int main(int argc, char * argv[]) {
         }
 
         // Join all the threads back
-/*        for(int i = 0; i < 3; ++i){
+        for(int i = 0; i < 3; ++i){
             pthread_join(threads[i], NULL);
         }
-        */
+        
         for(int i = 0; i < w; ++i) {
-            request_buffer.push("quit");
+            request_buffer->push("quit");
         }
         for(int i = 0; i < w; ++i){
             pthread_join(worker[i], NULL);
