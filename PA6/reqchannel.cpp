@@ -94,7 +94,6 @@ my_name(_name), my_side(_side), side_name((_side == RequestChannel::SERVER_SIDE)
 }
 
 RequestChannel::~RequestChannel() {
-    // TODO make sure only FIFO uses this
 }
 
 const int MAX_MESSAGE = 255;

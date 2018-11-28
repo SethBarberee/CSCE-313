@@ -5,7 +5,10 @@
 KernelSemaphore::KernelSemaphore(int _val, key_t key){
     semid = semget(key, 1, IPC_CREAT | 0666);
     struct sembuf sb = {0, (short)_val, 0};
-    semop(semid, &sb, 1);
+    // don't semop if _val is 0
+    if(_val != 0){
+        semop(semid, &sb, 1);
+    }
 }
 
 KernelSemaphore::~KernelSemaphore(){
@@ -54,7 +57,7 @@ void SHMBoundedBuffer::push(string msg){
 
 string SHMBoundedBuffer::pop(){
     full->P();
-    string data_string = data;
+    string data_string(data);
     empty->V();
     return data_string;
 }

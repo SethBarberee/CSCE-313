@@ -43,14 +43,6 @@ int MQRequestChannel::get_send(){
     return send_id;
 }
 
-key_t MQRequestChannel::get_key(){
-    return key;
-}
-
-int MQRequestChannel::get_msgid(){
-    return msgid;
-}
-
 string MQRequestChannel::cread(){
     struct mesg_buffer { 
         long mesg_type; 

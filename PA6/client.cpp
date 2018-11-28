@@ -114,7 +114,6 @@ void* worker_thread_function(void* arg) {
 
 		if(request == "quit") {
             // quitting so delete the worker channel
-            // TODO don't delete channel until the end
 			delete my_data->workerChannel;
             break;
         }else{
@@ -327,7 +326,6 @@ int main(int argc, char * argv[]) {
         auto end = chrono::system_clock::now();
         chrono::duration<double> elaspsed_seconds = end-start;
         chan->cwrite ("quit");
-        // TODO delete all the worker channels
         delete chan;
         cout << "All Done!!!" << endl;
         // Clear the screen and print the histogram (to keep it with the rest of the histograms)

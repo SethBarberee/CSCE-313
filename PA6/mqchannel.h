@@ -13,12 +13,9 @@ class MQRequestChannel : public RequestChannel {
         int receive_id;
     public:
         MQRequestChannel(const string _name, const Side _side);
-        MQRequestChannel(const string _name, const Side _side, key_t control_key, int control_msg);
         ~MQRequestChannel();
         string cread();
         void cwrite(string _msg);
-        key_t get_key();
-        int get_msgid();
         int get_send();
         int get_receive();
 };
